@@ -12,14 +12,14 @@ class ShoppingListManager(ctk.CTk):
         #--- Main Window ---#
         self.title("Shopping List Manager")
         self.resizable(False, False)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(10, weight=1)
         self._set_appearance_mode("system")
         self.bind("<End>", lambda event: self.destroy())
 
         #--- Window Size ---#
-        self.w = 1500
-        self.h = 750
+        self.w = 1000
+        self.h = 500
 
         self.ws = self.winfo_screenwidth()
         self.hs = self.winfo_screenheight()
@@ -30,23 +30,12 @@ class ShoppingListManager(ctk.CTk):
         self.geometry('%dx%d+%d+%d' % (self.w, self.h, self.x, self.y))
 
         #--- Window Widgets ---#
-        self.buttonframe = ctk.CTkFrame(self)
-        self.buttonframe.grid(row=0, column=0, columnspan=1, padx=10, pady=10, sticky="nsw")
+        self.listframe = ctk.CTkScrollableFrame(self, width=500, height=425)
+        self.listframe.grid(row=0, column=1, columnspan=4, padx=10, pady=10, sticky="nw")
+        self.listframe.grid_columnconfigure(0, weight=1)
 
-        self.listframe = ctk.CTkFrame(self)
-        self.listframe.grid(row=0, column=2, columnspan=2, padx=10, pady=10, sticky="nsew")
-
-        self.addlist = ctk.CTkButton(self.buttonframe, text="Add List", command=self.addList)
-        self.addlist.pack(padx=10, pady=10)
-
-        self.dellist = ctk.CTkButton(self.buttonframe, text="Delete List", command=self.deleteList)
-        self.dellist.pack(padx=10, pady=10)
-
-        self.editlist = ctk.CTkButton(self.buttonframe, text="Edit List", command=self.editList)
-        self.editlist.pack(padx=10, pady=10)
-
-        self.exitbutton = ctk.CTkButton(self.buttonframe, text="Exit", command=self.destroy)
-        self.exitbutton.pack(padx=10, pady=10, side="bottom")
+        self.createlist = ctk.CTkButton(self, text="Create List", command=self.addList, width=520)
+        self.createlist.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="sw")
 
     def addList(self):
 
@@ -61,7 +50,7 @@ class ShoppingListManager(ctk.CTk):
         self.addwindow.focus_force()
 
         w = 200
-        h = 200
+        h = 100
 
         ws = self.addwindow.winfo_screenwidth()
         hs = self.addwindow.winfo_screenheight()
@@ -76,18 +65,14 @@ class ShoppingListManager(ctk.CTk):
         self.addlistframe.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         self.listname = ctk.CTkLabel(self.addlistframe, text="List Name:")
-        self.listname.pack(padx=10, pady=10)
+        self.listname.pack(padx=10, pady=(10, 5))
 
         self.listnameentry = ctk.CTkEntry(self.addlistframe)
-        self.listnameentry.pack(padx=10)
+        self.listnameentry.pack(padx=10, pady=(5, 10))
+        self.listnameentry.bind("<Return>", lambda event: [self.savelist(), self.addwindow.destroy()])
 
         self.addlistbutton = ctk.CTkButton(self.addlistframe, text="Add List", command=lambda: [self.savelist(), self.addwindow.destroy()])
         self.addlistbutton.pack(padx=10, pady=10)
-        self.addlistbutton.bind("<Return>", command=lambda: [self.savelist(), self.addwindow.destroy()])
-
-         
-
-
 
         #--- Add List mainloop ---#
         self.addwindow.mainloop()
@@ -99,7 +84,7 @@ class ShoppingListManager(ctk.CTk):
             os.makedirs("lists")
 
         with open(f'lists/{self.listname}.json', 'w') as f:
-            json.dump(self.listname, f)
+            json.dump("random", f)
 
     def deleteList(self):
         pass
@@ -107,6 +92,24 @@ class ShoppingListManager(ctk.CTk):
     def editList(self):
         pass
 
+    def loadLists(self):
+        if not os.path.exists("lists"):
+            os.makedirs("lists")
+        
+        self.listcount = len(os.listdir("lists"))
+        self.listframe.grid_rowconfigure(self.listcount, weight=1)
+
+        for i in range(self.listcount):
+            self.listname = os.listdir("lists")[i]
+            self.listname = self.listname[:-5]
+
+            self.listbutton = ctk.CTkButton(self.listframe, text=self.listname, command=lambda: self.openList(self.listname))
+            self.listbutton.grid(row=i, column=0, padx=10, pady=10, sticky="nsew")
+            
+
+
+
 if __name__ == "__main__":
     app = ShoppingListManager()
+    app.loadLists()
     app.mainloop()
