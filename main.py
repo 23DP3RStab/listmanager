@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib as mpl
 import os
+import json
 
 class ShoppingListManager(ctk.CTk):
     def __init__(self):
@@ -82,6 +83,7 @@ class ShoppingListManager(ctk.CTk):
 
         self.addlistbutton = ctk.CTkButton(self.addlistframe, text="Add List", command=lambda: [self.savelist(), self.addwindow.destroy()])
         self.addlistbutton.pack(padx=10, pady=10)
+        self.addlistbutton.bind("<Return>", command=lambda: [self.savelist(), self.addwindow.destroy()])
 
          
 
@@ -92,7 +94,12 @@ class ShoppingListManager(ctk.CTk):
 
     def savelist(self):
         self.listname = self.listnameentry.get()
-        os.mkdir("lists/" + self.listname)
+        
+        if not os.path.exists("lists"):
+            os.makedirs("lists")
+
+        with open(f'lists/{self.listname}.json', 'w') as f:
+            json.dump(self.listname, f)
 
     def deleteList(self):
         pass
