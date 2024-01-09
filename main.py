@@ -14,7 +14,7 @@ class ShoppingListManager(ctk.CTk):
         self.resizable(False, False)
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(10, weight=1)
-        self._set_appearance_mode("system")
+        self._set_appearance_mode("dark")
         self.bind("<End>", lambda event: self.destroy())
 
         #--- Window Size ---#
@@ -34,8 +34,22 @@ class ShoppingListManager(ctk.CTk):
         self.listframe.grid(row=0, column=1, columnspan=4, padx=10, pady=10, sticky="nw")
         self.listframe.grid_columnconfigure(0, weight=1)
 
-        self.createlist = ctk.CTkButton(self, text="Create List", command=self.addList, width=520)
-        self.createlist.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="sw")
+        self.refreshbutton = ctk.CTkButton(self, text="Refresh", command=self.loadLists, width=180)
+        self.refreshbutton.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="sw")
+
+        self.createlist = ctk.CTkButton(self, text="Create List", command=self.addList, width=180)
+        self.createlist.grid(row=1, column=2, padx=(0, 10), pady=(0, 10), sticky="se")
+
+        self.deletebutton = ctk.CTkButton(self, text="Delete List", command=self.deleteList, width=180)
+        self.deletebutton.grid(row=1, column=3, padx=(0, 10), pady=(0, 10), sticky="sw")
+
+        self.editbutton = ctk.CTkButton(self, text="Edit List", command=self.editList, width=180)
+        self.editbutton.grid(row=1, column=4, padx=(0, 10), pady=(0, 10), sticky="se")
+
+        self.settingsbutton = ctk.CTkButton(self, text="Settings", width=180)
+        self.settingsbutton.grid(row=1, column=5, padx=(0, 10), pady=(0, 10), sticky="sw")
+
+
 
     def addList(self):
 
@@ -103,8 +117,8 @@ class ShoppingListManager(ctk.CTk):
             self.listname = os.listdir("lists")[i]
             self.listname = self.listname[:-5]
 
-            self.listbutton = ctk.CTkButton(self.listframe, text=self.listname, command=lambda: self.openList(self.listname))
-            self.listbutton.grid(row=i, column=0, padx=10, pady=10, sticky="nsew")
+            self.listbutton = ctk.CTkButton(self.listframe, text="          " + self.listname, hover=True, anchor="w", fg_color="#2b2b2b", border_color="#000000", border_width=1)
+            self.listbutton.grid(row=i, column=0, padx=10, pady=(5, 0), sticky="nsew")
             
 
 
