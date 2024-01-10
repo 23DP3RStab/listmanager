@@ -9,6 +9,9 @@ class ShoppingListManager(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        self.selectedlist = None
+        self.selectedlistname = None
+
         #--- Main Window ---#
         self.title("Shopping List Manager")
         self.resizable(False, False)
@@ -30,23 +33,23 @@ class ShoppingListManager(ctk.CTk):
         self.geometry('%dx%d+%d+%d' % (self.w, self.h, self.x, self.y))
 
         #--- Window Widgets ---#
-        self.listframe = ctk.CTkScrollableFrame(self, width=500, height=425)
+        self.listframe = ctk.CTkScrollableFrame(self, width=365, height=425)
         self.listframe.grid(row=0, column=1, columnspan=4, padx=10, pady=10, sticky="nw")
         self.listframe.grid_columnconfigure(0, weight=1)
 
-        self.refreshbutton = ctk.CTkButton(self, text="Refresh", command=self.loadLists, width=180)
+        self.refreshbutton = ctk.CTkButton(self, text="Refresh", command=self.loadLists, width=185)
         self.refreshbutton.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="sw")
 
-        self.createlist = ctk.CTkButton(self, text="Create List", command=self.addList, width=180)
+        self.createlist = ctk.CTkButton(self, text="Create List", command=self.addList, width=190)
         self.createlist.grid(row=1, column=2, padx=(0, 10), pady=(0, 10), sticky="se")
 
-        self.deletebutton = ctk.CTkButton(self, text="Delete List", command=self.deleteList, width=180)
+        self.deletebutton = ctk.CTkButton(self, text="Delete List", command=lambda:self.deleteList(), width=190)
         self.deletebutton.grid(row=1, column=3, padx=(0, 10), pady=(0, 10), sticky="sw")
 
-        self.editbutton = ctk.CTkButton(self, text="Edit List", command=self.editList, width=180)
+        self.editbutton = ctk.CTkButton(self, text="Edit List", command=self.editList, width=190)
         self.editbutton.grid(row=1, column=4, padx=(0, 10), pady=(0, 10), sticky="se")
 
-        self.settingsbutton = ctk.CTkButton(self, text="Settings", width=180)
+        self.settingsbutton = ctk.CTkButton(self, text="Settings", width=190)
         self.settingsbutton.grid(row=1, column=5, padx=(0, 10), pady=(0, 10), sticky="sw")
 
 
@@ -91,6 +94,7 @@ class ShoppingListManager(ctk.CTk):
         #--- Add List mainloop ---#
         self.addwindow.mainloop()
 
+
     def savelist(self):
         self.listname = self.listnameentry.get()
         
@@ -100,26 +104,70 @@ class ShoppingListManager(ctk.CTk):
         with open(f'lists/{self.listname}.json', 'w') as f:
             json.dump("random", f)
 
+
     def deleteList(self):
-        pass
+        if self.selectedlistname is None:
+            self.popupmsg("No list selected!")
+            return
+        self.listbuttons.pop(self.selectedlistname)
+        os.remove(f"lists/{self.selectedlistname}.json")
+        self.popupmsg("List deleted!")
+
 
     def editList(self):
-        pass
+        if self.selectedlist is None:
+            self.popupmsg("No list selected!")
+            return
+        self.editwindow = ctk.CTkToplevel(self)
+
 
     def loadLists(self):
         if not os.path.exists("lists"):
             os.makedirs("lists")
-        
+
         self.listcount = len(os.listdir("lists"))
         self.listframe.grid_rowconfigure(self.listcount, weight=1)
+
+        self.listbuttons = {}
+
+        def make_command(name):
+            return lambda: self.selectList(name)
 
         for i in range(self.listcount):
             self.listname = os.listdir("lists")[i]
             self.listname = self.listname[:-5]
 
-            self.listbutton = ctk.CTkButton(self.listframe, text="          " + self.listname, hover=True, anchor="w", fg_color="#2b2b2b", border_color="#000000", border_width=1)
-            self.listbutton.grid(row=i, column=0, padx=10, pady=(5, 0), sticky="nsew")
-            
+            self.listbuttons[self.listname] = ctk.CTkButton(self.listframe, text=self.listname, command=make_command(self.listname), hover=True, fg_color="#2b2b2b", border_color="#1f6aa5", border_width=1)
+            self.listbuttons[self.listname].grid(row=i, column=0, padx=10, pady=(5, 0), sticky="nsew")
+
+
+    def selectList(self, listname):
+        if self.selectedlist is not None:
+            self.selectedlist.configure(fg_color="#2b2b2b", border_color="#1f6aa5")
+
+        self.selectedlist = self.listbuttons[listname]
+        self.selectedlistname = listname
+        print(self.selectedlist)
+        print(self.selectedlist.cget("text"))
+        print(self.selectedlistname)
+
+        self.selectedlist.configure(fg_color="#1f6aa5", border_color="#1f6aa5")
+    
+    def popupmsg(self, msg):
+        popup = ctk.CTkToplevel()
+        popup.title("!")
+        popup.resizable(False, False)
+        popup.attributes('-topmost', 1)
+        popup.focus_force()
+        popup.geometry("200x100")
+
+        label = ctk.CTkLabel(popup, text=msg)
+        label.pack(side="top", fill="x", pady=10)
+
+        B1 = ctk.CTkButton(popup, text="Okay", command = popup.destroy)
+        B1.pack()
+
+        popup.mainloop()
 
 
 
