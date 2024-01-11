@@ -58,7 +58,7 @@ class ShoppingListManager(ctk.CTk):
 
         #--- Add List Window ---#
         self.addwindow = ctk.CTkToplevel(self)
-        self.addwindow.title("Add List")
+        self.addwindow.title("Add")
         self.addwindow.resizable(False, False)
         self.addwindow.grid_rowconfigure(0, weight=1)
         self.addwindow.grid_columnconfigure(0, weight=1)
@@ -109,9 +109,23 @@ class ShoppingListManager(ctk.CTk):
         if self.selectedlistname is None:
             self.popupmsg("No list selected!")
             return
-        self.listbuttons.pop(self.selectedlistname)
+        
+        buttondelete = self.listbuttons.get(self.selectedlistname)
+
+        if buttondelete:
+            buttondelete.destroy()
+
+        print(self.listbuttons)
+
+        if self.selectedlistname in self.listbuttons:
+            del self.listbuttons[self.selectedlistname]
+
+        print(self.listbuttons)
+        
         os.remove(f"lists/{self.selectedlistname}.json")
         self.popupmsg("List deleted!")
+
+
 
 
     def editList(self):
