@@ -10,3 +10,4 @@ Manager for shopping lists.
 - Functions for buttons: delete, edit                                               |X|
 - Add a selected function so app knows which list to delete or edit or whatever     |X|
 - Make a window where to add or edit items to list. details: items, quantity, price | |
+- Fix bug where after deleting a list you can't select any other list.              | |
