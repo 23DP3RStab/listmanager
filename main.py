@@ -5,6 +5,7 @@ import matplotlib as mpl
 import os
 import json
 import tkinter as tk
+from tkinter import ttk
 
 class ShoppingListManager(ctk.CTk):
     def __init__(self):
@@ -25,8 +26,11 @@ class ShoppingListManager(ctk.CTk):
 
         #--- Window Widgets ---#
         self.listframe = ctk.CTkScrollableFrame(self, width=365, height=425)
-        self.listframe.grid(row=0, column=1, columnspan=4, padx=10, pady=10, sticky="nw")
+        self.listframe.grid(row=0, column=1, columnspan=2, padx=(10, 0), pady=10, sticky="nw")
         self.listframe.grid_columnconfigure(0, weight=1)
+
+        self.tableframe = ctk.CTkFrame(self, width=585, height=437)
+        self.tableframe.grid(row=0, column=3, columnspan=3, padx=(0, 10), pady=10, sticky="n")
 
         self.refreshbutton = ctk.CTkButton(self, text="Refresh", command=self.loadLists, width=185)
         self.refreshbutton.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="sw")
@@ -244,21 +248,23 @@ class ShoppingListManager(ctk.CTk):
             list_data = json.load(file)
 
         if len(list_data) == 0:
-            self.popupmsg("List is empty!")
             return
 
-        fig, ax = plt.subplots()
+        style = ttk.Style()
+        style.configure("Treeview", background="#2b2b2b", foreground="#ffffff", selectbackground="#1f6aa5", selectforeground="#ffffff")
 
-        ax.axis('off')
+        tree = ttk.Treeview(self.tableframe)
 
-        table_data = []
+        tree['columns'] = ('Item Name', 'Price', 'Quantity')
+
+        for col in tree['columns']:
+            tree.heading(col, text=col)
+            tree.column(col, width=100)
+
         for item in list_data:
-            row = [item['name'], item['price'], item['quantity']]
-            table_data.append(row)
+            tree.insert('', 'end', values=(item['name'], item['price'], item['quantity']))
 
-        table = ax.table(cellText=table_data, colLabels=["Item Name", "Price", "Quantity"], cellLoc = 'center', loc='center')
-
-        plt.show()
+        tree.pack()
 
 
 
