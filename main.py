@@ -21,17 +21,7 @@ class ShoppingListManager(ctk.CTk):
         self._set_appearance_mode("dark")
         self.bind("<End>", lambda event: self.destroy())
 
-        #--- Window Size ---#
-        self.w = 1000
-        self.h = 500
-
-        self.ws = self.winfo_screenwidth()
-        self.hs = self.winfo_screenheight()
-
-        self.x = (self.ws/2) - (self.w/2)
-        self.y = (self.hs/2) - (self.h/2)
-
-        self.geometry('%dx%d+%d+%d' % (self.w, self.h, self.x, self.y))
+        self.center(self, 1000, 500)
 
         #--- Window Widgets ---#
         self.listframe = ctk.CTkScrollableFrame(self, width=365, height=425)
@@ -66,16 +56,7 @@ class ShoppingListManager(ctk.CTk):
         self.addwindow.attributes('-topmost', True)
         self.addwindow.focus_force()
 
-        w = 200
-        h = 100
-
-        ws = self.addwindow.winfo_screenwidth()
-        hs = self.addwindow.winfo_screenheight()
-
-        x = (ws/2) - (w/2)
-        y = (hs/2) - (h/2)
-
-        self.addwindow.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        self.center(self.addwindow, 200, 100)
 
         #--- Add List Widgets ---#
         self.addlistframe = ctk.CTkFrame(self.addwindow)
@@ -103,7 +84,7 @@ class ShoppingListManager(ctk.CTk):
             os.makedirs("lists")
 
         with open(f'lists/{self.listname}.json', 'w') as f:
-            json.dump({}, f)
+            json.dump([], f)
 
 
     def deleteList(self):
@@ -135,28 +116,65 @@ class ShoppingListManager(ctk.CTk):
         self.editwindow = ctk.CTkToplevel(self)
         self.editwindow.title("Edit")
         self.editwindow.resizable(False, False)
-        self.editwindow.grid_rowconfigure(0, weight=1)
-        self.editwindow.grid_columnconfigure(0, weight=1)
 
         self.editwindow.attributes('-topmost', True)
         self.editwindow.focus_force()
 
-        w = 400
-        h = 700
-
-        ws = self.editwindow.winfo_screenwidth()
-        hs = self.editwindow.winfo_screenheight()
-
-        x = (ws/2) - (w/2)
-        y = (hs/2) - (h/2)
-
-        self.editwindow.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        self.center(self.editwindow, 200, 325)
 
         #--- Edit List Widgets ---#
         self.editlistframe = ctk.CTkFrame(self.editwindow)
-        self.editlistframe.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.editlistframe.pack(padx=5, pady=5, anchor="center", fill="both", expand=True)
 
-        self.listname = ctk.CTkLabel(self.editlistframe, text="List Name:")
+        self.itemname = ctk.CTkLabel(self.editlistframe, text="Item Name:", anchor="w")
+        self.itemname.pack(padx=10, pady=(10, 0))
+
+        self.itemnameentry = ctk.CTkEntry(self.editlistframe, width=175)
+        self.itemnameentry.pack(padx=10, pady=(0, 10))
+
+        self.itemprice = ctk.CTkLabel(self.editlistframe, text="Item Price:", anchor="w")
+        self.itemprice.pack(padx=10, pady=(10, 0))
+
+        self.itempriceentry = ctk.CTkEntry(self.editlistframe, width=175)
+        self.itempriceentry.pack(padx=10, pady=(0, 10))
+
+        self.itemquantity = ctk.CTkLabel(self.editlistframe, text="Item Quantity:", anchor="w")
+        self.itemquantity.pack(padx=10, pady=(10, 0))
+
+        self.itemquantityentry = ctk.CTkEntry(self.editlistframe, width=175)
+        self.itemquantityentry.pack(padx=10, pady=(0, 10))
+
+        def saveItem():
+            item_name = self.itemnameentry.get()
+            item_price = self.itempriceentry.get()
+            item_quantity = self.itemquantityentry.get()
+
+            with open(f"lists/{self.selectedlistname}.json", "r+") as file:
+                list_data = json.load(file)
+
+                list_data.append({
+                    "name": item_name,
+                    "price": item_price,
+                    "quantity": item_quantity
+                })
+
+                file.seek(0)
+                file.truncate()
+                json.dump(list_data, file)
+            
+            self.itemnameentry.delete(0, "end")
+            self.itempriceentry.delete(0, "end")
+            self.itemquantityentry.delete(0, "end")
+
+            self.popupmsg("Item added!")
+
+        self.additembutton = ctk.CTkButton(self.editlistframe, text="Add Item", command=saveItem)
+        self.additembutton.pack(padx=10, pady=10)
+
+        self.exitbutton = ctk.CTkButton(self.editlistframe, text="Done", command=self.editwindow.destroy)
+        self.exitbutton.pack(padx=10, pady=(0, 10))
+
+        self.editwindow.bind("<Return>", lambda event: saveItem())
 
 
     def loadLists(self):
@@ -190,23 +208,57 @@ class ShoppingListManager(ctk.CTk):
         self.selectedlistname = listname
 
         self.selectedlist.configure(fg_color="#1f6aa5", border_color="#1f6aa5")
+
+        self.displayList()
     
 
     def popupmsg(self, msg):
+        if hasattr(self, 'editwindow') and self.editwindow is not None:
+            self.editwindow.attributes('-topmost', False)
+
         popup = ctk.CTkToplevel()
         popup.title("!")
         popup.resizable(False, False)
         popup.attributes('-topmost', 1)
         popup.focus_force()
-        popup.geometry("200x100")
+
+        self.center(popup, 200, 100)
 
         label = ctk.CTkLabel(popup, text=msg)
         label.pack(side="top", fill="x", pady=10)
 
-        B1 = ctk.CTkButton(popup, text="Okay", command = popup.destroy)
+        B1 = ctk.CTkButton(popup, text="Okay", command=lambda: [popup.destroy(), self.editwindow.attributes('-topmost', True) if hasattr(self, 'editwindow') and self.editwindow is not None else None])
         B1.pack()
 
-        popup.mainloop()
+
+    def center(self, toplevel, w, h):
+        ws = toplevel.winfo_screenwidth()
+        hs = toplevel.winfo_screenheight()
+        x = (ws/2) - (w/2)
+        y = (hs/2) - (h/2)
+        toplevel.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+
+    def displayList(self):
+        with open(f"lists/{self.selectedlistname}.json", "r") as file:
+            list_data = json.load(file)
+
+        if len(list_data) == 0:
+            self.popupmsg("List is empty!")
+            return
+
+        fig, ax = plt.subplots()
+
+        ax.axis('off')
+
+        table_data = []
+        for item in list_data:
+            row = [item['name'], item['price'], item['quantity']]
+            table_data.append(row)
+
+        table = ax.table(cellText=table_data, colLabels=["Item Name", "Price", "Quantity"], cellLoc = 'center', loc='center')
+
+        plt.show()
 
 
 
