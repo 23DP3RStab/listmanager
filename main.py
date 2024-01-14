@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib as mpl
 import os
 import json
+import tkinter as tk
 
 class ShoppingListManager(ctk.CTk):
     def __init__(self):
@@ -55,7 +56,6 @@ class ShoppingListManager(ctk.CTk):
 
 
     def addList(self):
-
         #--- Add List Window ---#
         self.addwindow = ctk.CTkToplevel(self)
         self.addwindow.title("Add")
@@ -63,7 +63,7 @@ class ShoppingListManager(ctk.CTk):
         self.addwindow.grid_rowconfigure(0, weight=1)
         self.addwindow.grid_columnconfigure(0, weight=1)
 
-        self.addwindow.attributes('-topmost', 1)
+        self.addwindow.attributes('-topmost', True)
         self.addwindow.focus_force()
 
         w = 200
@@ -87,12 +87,13 @@ class ShoppingListManager(ctk.CTk):
         self.listnameentry = ctk.CTkEntry(self.addlistframe)
         self.listnameentry.pack(padx=10, pady=(5, 10))
         self.listnameentry.bind("<Return>", lambda event: [self.savelist(), self.addwindow.destroy()])
+        
 
         self.addlistbutton = ctk.CTkButton(self.addlistframe, text="Add List", command=lambda: [self.savelist(), self.addwindow.destroy()])
         self.addlistbutton.pack(padx=10, pady=10)
 
-        #--- Add List mainloop ---#
-        self.addwindow.mainloop()
+        #--- Add List extra ---#
+        self.addwindow.after(1, lambda: self.listnameentry.focus_set())
 
 
     def savelist(self):
@@ -102,37 +103,60 @@ class ShoppingListManager(ctk.CTk):
             os.makedirs("lists")
 
         with open(f'lists/{self.listname}.json', 'w') as f:
-            json.dump("random", f)
+            json.dump({}, f)
 
 
     def deleteList(self):
         if self.selectedlistname is None:
             self.popupmsg("No list selected!")
             return
-        
-        buttondelete = self.listbuttons.get(self.selectedlistname)
-
-        if buttondelete:
-            buttondelete.destroy()
-
-        print(self.listbuttons)
 
         if self.selectedlistname in self.listbuttons:
+            buttondelete = self.listbuttons[self.selectedlistname]
+
+            buttondelete.destroy()
+
             del self.listbuttons[self.selectedlistname]
 
-        print(self.listbuttons)
-        
-        os.remove(f"lists/{self.selectedlistname}.json")
-        self.popupmsg("List deleted!")
+        list_file_path = f"lists/{self.selectedlistname}.json"
+        if os.path.exists(list_file_path):
+            os.remove(list_file_path)
+            self.popupmsg("List deleted!")
 
-
+        self.selectedlist = None
+        self.selectedlistname = None
 
 
     def editList(self):
         if self.selectedlist is None:
             self.popupmsg("No list selected!")
             return
+        
         self.editwindow = ctk.CTkToplevel(self)
+        self.editwindow.title("Edit")
+        self.editwindow.resizable(False, False)
+        self.editwindow.grid_rowconfigure(0, weight=1)
+        self.editwindow.grid_columnconfigure(0, weight=1)
+
+        self.editwindow.attributes('-topmost', True)
+        self.editwindow.focus_force()
+
+        w = 400
+        h = 700
+
+        ws = self.editwindow.winfo_screenwidth()
+        hs = self.editwindow.winfo_screenheight()
+
+        x = (ws/2) - (w/2)
+        y = (hs/2) - (h/2)
+
+        self.editwindow.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+        #--- Edit List Widgets ---#
+        self.editlistframe = ctk.CTkFrame(self.editwindow)
+        self.editlistframe.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.listname = ctk.CTkLabel(self.editlistframe, text="List Name:")
 
 
     def loadLists(self):
@@ -156,17 +180,18 @@ class ShoppingListManager(ctk.CTk):
 
 
     def selectList(self, listname):
-        if self.selectedlist is not None:
-            self.selectedlist.configure(fg_color="#2b2b2b", border_color="#1f6aa5")
+        try:
+            if self.selectedlist is not None:
+                self.selectedlist.configure(fg_color="#2b2b2b", border_color="#1f6aa5")
+        except AttributeError:
+            self.popupmsg("An error occurred!")
 
         self.selectedlist = self.listbuttons[listname]
         self.selectedlistname = listname
-        print(self.selectedlist)
-        print(self.selectedlist.cget("text"))
-        print(self.selectedlistname)
 
         self.selectedlist.configure(fg_color="#1f6aa5", border_color="#1f6aa5")
     
+
     def popupmsg(self, msg):
         popup = ctk.CTkToplevel()
         popup.title("!")
