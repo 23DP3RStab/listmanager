@@ -124,29 +124,31 @@ class ShoppingListManager(ctk.CTk):
         self.editwindow.attributes('-topmost', True)
         self.editwindow.focus_force()
 
-        self.center(self.editwindow, 200, 325)
+        self.center(self.editwindow, 500, 325)
 
         #--- Edit List Widgets ---#
         self.editlistframe = ctk.CTkFrame(self.editwindow)
         self.editlistframe.pack(padx=5, pady=5, anchor="center", fill="both", expand=True)
+        self.editlistframe.grid_columnconfigure(2, weight=1)
+        self.editlistframe.grid_rowconfigure(8, weight=1)
 
         self.itemname = ctk.CTkLabel(self.editlistframe, text="Item Name:", anchor="w")
-        self.itemname.pack(padx=10, pady=(10, 0))
+        self.itemname.grid(column=1, row=1, padx=10, pady=(10, 0))
 
         self.itemnameentry = ctk.CTkEntry(self.editlistframe, width=175)
-        self.itemnameentry.pack(padx=10, pady=(0, 10))
+        self.itemnameentry.grid(column=1, row=2, padx=10, pady=(0, 10))
 
         self.itemprice = ctk.CTkLabel(self.editlistframe, text="Item Price:", anchor="w")
-        self.itemprice.pack(padx=10, pady=(10, 0))
+        self.itemprice.grid(column=1, row=3, padx=10, pady=(10, 0))
 
         self.itempriceentry = ctk.CTkEntry(self.editlistframe, width=175)
-        self.itempriceentry.pack(padx=10, pady=(0, 10))
+        self.itempriceentry.grid(column=1, row=4, padx=10, pady=(0, 10))
 
         self.itemquantity = ctk.CTkLabel(self.editlistframe, text="Item Quantity:", anchor="w")
-        self.itemquantity.pack(padx=10, pady=(10, 0))
+        self.itemquantity.grid(column=1, row=5, padx=10, pady=(10, 0))
 
         self.itemquantityentry = ctk.CTkEntry(self.editlistframe, width=175)
-        self.itemquantityentry.pack(padx=10, pady=(0, 10))
+        self.itemquantityentry.grid(column=1, row=6, padx=10, pady=(0, 10))
 
         def saveItem():
             item_name = self.itemnameentry.get()
@@ -173,12 +175,24 @@ class ShoppingListManager(ctk.CTk):
             self.popupmsg("Item added!")
 
         self.additembutton = ctk.CTkButton(self.editlistframe, text="Add Item", command=saveItem)
-        self.additembutton.pack(padx=10, pady=10)
+        self.additembutton.grid(column=1, row=7, padx=10, pady=10)
 
         self.exitbutton = ctk.CTkButton(self.editlistframe, text="Done", command=self.editwindow.destroy)
-        self.exitbutton.pack(padx=10, pady=(0, 10))
+        self.exitbutton.grid(column=1, row=8, padx=10, pady=(0, 10))
 
         self.editwindow.bind("<Return>", lambda event: saveItem())
+
+        with open(f"lists/{self.selectedlistname}.json", "r") as file:
+            list_data = json.load(file)
+        item_names = [item['name'] for item in list_data]
+
+        selected_item = tk.StringVar(self.editlistframe)
+
+        if item_names:
+            selected_item.set(item_names[0])
+
+        dropdown = ctk.CTkOptionMenu(self.editlistframe, values=[*item_names], variable=selected_item, width=175)
+        dropdown.grid(column=2, row=1, padx=10, pady=(10, 0))
 
 
     def loadLists(self):
